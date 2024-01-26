@@ -13,6 +13,7 @@ class FlagmanRow(t.Protocol):
     status: str
     pack_name: str
     channel_name: str
+    channel_button: str
     channel_id: int
 
 
@@ -25,7 +26,8 @@ FlagmanTable = sa.Table(
     sa.Column('status', sa.String(255)),
     sa.Column('pack_name', sa.String(255)),
     sa.Column('channel_name', sa.String(255)),
-    sa.Column('channel_id', sa.String(255)),
+    sa.Column('channel_button', sa.String(255)),
+    sa.Column('channel_id', sa.BigInteger),
 )
 
 
@@ -36,22 +38,26 @@ async def add_flagman(
         pack_id: int,
         pack_name: str,
         channel_name: str,
-        channel_id: int, 
-        ) -> None:
+        channel_id: int,
+        channel_button
+        ) -> int:
     async with begin_connection() as conn:
-        await conn.execute(
+        result = await conn.execute(
             FlagmanTable.insert().values(
                 start_date=start_date,
                 status=status, 
                 pack_id=pack_id,
                 pack_name=pack_name,
                 channel_name=channel_name,
-                channel_id=channel_id, 
+                channel_id=channel_id,
+                channel_button=channel_button
             )
         )
+
+    return result.inserted_primary_key_rows[0][0]
         
         
-# Добавить флагман
+# Обновить флагман
 async def update_flagman_pack(
         pack_id: int,
         start_date: str = None,
@@ -73,6 +79,26 @@ async def update_flagman_pack(
     
     async with begin_connection() as conn:
         await conn.execute(query)
+
+
+# Добавить канал
+async def update_flagman(
+        row_id: int,
+        status: str = None,
+        button_name: str = None,
+) -> None:
+    query = FlagmanTable.update ().where (
+        FlagmanTable.c.id == row_id,
+        FlagmanTable.c.status == 'active')
+
+    if status:
+        query = query.values (status=status)
+
+    if button_name:
+        query = query.values (button_name=button_name)
+
+    async with begin_connection () as conn:
+        await conn.execute (query)
 
 
 # все активные флагманы
@@ -105,11 +131,14 @@ async def get_pack_info(pack_id: int) -> t.Union[FlagmanRow, None]:
 
 
 # отключает флагманы
-async def inactive_all_flagman(pack_id: int = 0) -> None:
+async def inactive_flagman(pack_id: int = 0, row_id: int = 0) -> None:
     query = FlagmanTable.update().values(status='inactive')
 
     if pack_id:
         query = query.where(FlagmanTable.c.pack_id == pack_id)
+
+    if row_id:
+        query = query.where (FlagmanTable.c.id == row_id)
 
     async with begin_connection() as conn:
         await conn.execute(query)

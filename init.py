@@ -11,11 +11,11 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 
 import asyncio
-# try:
-#     import uvloop
-#     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
-# except:
-#     pass
+try:
+    import uvloop
+    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+except:
+    pass
 
 
 load_dotenv ()
@@ -30,8 +30,8 @@ account = getenv('ACCOUNT')
 secret_key = getenv('SECRET_KEY')
 group_id = getenv('GROUP_ID')
 
-ADMINS = [524275902, 650850638, 1456925942]
-# ADMINS = [650850638]
+# ADMINS = [524275902, 650850638, 1456925942]
+ADMINS = [650850638]
 MY_ID = getenv('MY_ID')
 
 scheduler = AsyncIOScheduler()

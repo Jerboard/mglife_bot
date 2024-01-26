@@ -8,7 +8,7 @@ from db.base import init_models
 
 
 async def main() -> None:
-    await init_models()
+    await init_models ()
     await set_main_menu()
     await dp.start_polling(bot)
 

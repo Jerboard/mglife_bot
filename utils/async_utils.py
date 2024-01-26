@@ -100,9 +100,7 @@ async def send_access(user: db.UserRow):
 async def get_channel_info(check_chat_id: int):
     result = None
     try:
-        check = await bot.get_chat_member (chat_id=check_chat_id, user_id=MY_ID)
-        if check.status == 'administrator':
-            result = check
+        result = await bot.get_chat (chat_id=check_chat_id)
     except Exception as ex:
         print(ex)
         pass

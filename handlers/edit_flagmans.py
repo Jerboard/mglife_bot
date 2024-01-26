@@ -25,7 +25,8 @@ async def get_main_flagman_menu(chat_id: int, message_id: int = None):
 
 
 async def view_channel_pack(pack_id: int, chat_id: int, message_id: int = 0):
-    channel_pack = await db.get_all_flagman (pack_id=pack_id)
+    print(type(pack_id), pack_id)
+    channel_pack = await db.get_all_flagman (pack_id=int(pack_id))
 
     text = (f'<b>Название:</b> {channel_pack [0].pack_name}\n\n'
             f'<b>Каналы в пакете:</b>\n')
@@ -48,6 +49,27 @@ async def view_channel_pack(pack_id: int, chat_id: int, message_id: int = 0):
         )
 
 
+# экран редакт канала
+async def view_channel(row_id: int, chat_id: int, message_id: int = 0):
+    channel_info = await db.get_flagman (row_id)
+    text = (f'<b>Название канала:</b> {channel_info.channel_name}\n'
+            f'<b>Название кнопки:</b> {channel_info.channel_button}')
+
+    if message_id:
+        await bot.edit_message_text (
+            chat_id=chat_id,
+            message_id=message_id,
+            text=text,
+            reply_markup=kb.get_edit_channel_kb (channel_info)
+        )
+    else:
+        await bot.send_message (
+            chat_id=chat_id,
+            text=text,
+            reply_markup=kb.get_edit_channel_kb (channel_info)
+        )
+
+
 # изменение флагманов
 @dp.callback_query(lambda cb: cb.data.startswith('edit_flagman_start'))
 async def edit_flagman_start(cb: CallbackQuery, state: FSMContext) -> None:
@@ -55,18 +77,38 @@ async def edit_flagman_start(cb: CallbackQuery, state: FSMContext) -> None:
     await get_main_flagman_menu(chat_id=cb.message.chat.id, message_id=cb.message.message_id)
 
 
-# начала введения изменений
-@dp.callback_query(lambda cb: cb.data.startswith('edit_flagman_update'))
-async def edit_flagman_start(cb: CallbackQuery, state: FSMContext) -> None:
+# показывает пак флагманов
+@dp.callback_query(lambda cb: cb.data.startswith('edit_flagman_pack'))
+async def edit_flagman_pack(cb: CallbackQuery, state: FSMContext) -> None:
+    _, pack_id = cb.data.split(':')
+
+    await view_channel_pack (
+        pack_id=int(pack_id),
+        chat_id=cb.message.chat.id,
+        message_id=cb.message.message_id
+    )
+
+
+# показывает канал флагман
+@dp.callback_query(lambda cb: cb.data.startswith('edit_flagman_channel'))
+async def edit_flagman_pack(cb: CallbackQuery, state: FSMContext) -> None:
+    _, row_id_str = cb.data.split(':')
+
+    await view_channel (row_id=int (row_id_str), chat_id=cb.message.chat.id, message_id=cb.message.message_id)
+
+
+# начала введения изменений пака каналов
+@dp.callback_query(lambda cb: cb.data.startswith('edit_flagman_update_pack'))
+async def edit_flagman_update(cb: CallbackQuery, state: FSMContext) -> None:
     _, option, pack_id = cb.data.split (':')
     pack_id = int(pack_id)
 
-    if option == 'date':
-        text = 'Отправьте дату начала нового потока в формате <code>дд.мм.гггг</code>'
+    # if option == 'date':
+    #     text = 'Отправьте дату начала нового потока в формате <code>дд.мм.гггг</code>'
+    #
+    #     await state.set_state('update_date')
 
-        await state.set_state('update_date')
-
-    elif option == 'name':
+    if option == 'name':
         pack_info = await db.get_pack_info(pack_id=pack_id)
         text = (f'Отправьте новое название для пакета <i>{pack_info.pack_name}</i>\n\n'
                 f'❗️ Название не должно быть длиннее 128 символов')
@@ -84,44 +126,7 @@ async def edit_flagman_start(cb: CallbackQuery, state: FSMContext) -> None:
         'pack_id': pack_id})
 
 
-# принимает новую дату
-@dp.message(StateFilter('update_date'))
-async def update_date(msg: Message, state: FSMContext) -> None:
-    await msg.delete()
-    if len(msg.text.split('.')) != 3 and not msg.text.replace('.', '').isdigit():
-        sent = await msg.answer('Некорректный формат даты')
-        await sleep(3)
-        await sent.delete()
-
-    else:
-        data = await state.get_data()
-
-        all_flagman = await db.get_all_flagman (pack_id=data['pack_id'])
-        await db.inactive_all_flagman(pack_id=data['pack_id'])
-        for flagman in all_flagman:
-            await db.add_flagman(
-                start_date=msg.text,
-                status='active',
-                pack_id=flagman.pack_id,
-                pack_name=flagman.pack_name,
-                channel_name=flagman.channel_name,
-                channel_id=flagman.channel_id
-            )
-
-        if data['pack_id']:
-            text = f'В пакете {all_flagman[0].pack_name} начала всех потоков изменена на {msg.text}'
-        else:
-            text = f'Дата начала всех потоков изменена на {msg.text}'
-
-        await state.clear()
-        await bot.edit_message_text (
-            chat_id=msg.chat.id,
-            message_id=data ['message_id'],
-            text=text
-        )
-
-
-# принимает новое имя канала
+# принимает новое пакета каналов
 @dp.message(StateFilter('update_name'))
 async def update_name(msg: Message, state: FSMContext) -> None:
     await msg.delete ()
@@ -158,18 +163,18 @@ async def add_channel(msg: Message, state: FSMContext) -> None:
     else:
         data = await state.get_data()
         await state.clear()
-        channel_info = await bot.get_chat(chat_id=msg.text)
         pack_info = await db.get_pack_info (pack_id=data['pack_id'])
-        await db.add_flagman (
+        new_row_id = await db.add_flagman (
             start_date=pack_info.start_date,
             status='active',
             pack_id=pack_info.pack_id,
             pack_name=pack_info.pack_name,
             channel_name=channel_info.title,
-            channel_id=channel_info.id
+            channel_id=channel_info.id,
+            channel_button=channel_info.title[100]
         )
 
-        await bot.delete_message(chat_id=msg.chat.id, message_id=data['sent_message_id'])
+        await bot.delete_message (chat_id=msg.chat.id, message_id=data ['sent_message_id'])
         await view_channel_pack (
             pack_id=data ['pack_id'],
             chat_id=msg.chat.id,
@@ -177,31 +182,92 @@ async def add_channel(msg: Message, state: FSMContext) -> None:
         )
 
 
-# показывает пак флагманов
-@dp.callback_query(lambda cb: cb.data.startswith('edit_flagman_pack'))
-async def edit_flagman_pack(cb: CallbackQuery, state: FSMContext) -> None:
-    _, pack_id = cb.data.split(':')
+# начала введения изменений канал
+@dp.callback_query(lambda cb: cb.data.startswith('edit_flagman_update_channel'))
+async def edit_flagman_update(cb: CallbackQuery, state: FSMContext) -> None:
+    _, option, row_id_str = cb.data.split (':')
+    row_id = int(row_id_str)
 
-    await view_channel_pack (
-        pack_id=pack_id,
-        chat_id=cb.message.chat.id,
-        message_id=cb.message.message_id
-    )
+    if option == 'button':
+        channel_info = await db.get_flagman (row_id)
+        await state.set_state('update_button')
+        text = (f'Отправьте новое название кнопки для канала {channel_info.channel_button}\n\n'
+                f'❗️ Название не должно быть длиннее 128 символов')
+
+    else:
+        text = f'Отправьте ID канала или перешлите сообщение из него'
+        await state.set_state ('update_channel')
+
+    sent = await cb.message.answer (text, reply_markup=kb.get_cancel_kb ())
+    await state.update_data (data={
+        'sent_message_id': sent.message_id,
+        'main_message_id': cb.message.message_id,
+        'row_id': row_id
+    })
 
 
-# показывает канал флагман
-@dp.callback_query(lambda cb: cb.data.startswith('edit_flagman_channel'))
-async def edit_flagman_pack(cb: CallbackQuery, state: FSMContext) -> None:
-    _, row_id_str = cb.data.split(':')
-    row_id = int (row_id_str)
+# принимает новое пакета каналов
+@dp.message(StateFilter('update_button'))
+async def update_button(msg: Message, state: FSMContext) -> None:
+    await msg.delete ()
+    if len(msg.text) > 128:
+        sent = await msg.answer(f'Слишком длинное название {len(msg.text)} символов')
+        await sleep(3)
+        await sent.delete()
+    else:
+        data = await state.get_data ()
+        await state.clear ()
+        old_channel_info = await db.get_flagman (data ['row_id'])
+        new_row_id = await db.add_flagman (
+            start_date=old_channel_info.start_date,
+            status='active',
+            pack_id=old_channel_info.pack_id,
+            pack_name=old_channel_info.pack_name,
+            channel_name=old_channel_info.channel_name,
+            channel_id=old_channel_info.channel_id,
+            channel_button=msg.text
+        )
 
-    channel_info = await db.get_flagman(row_id)
-    text = f'<b>Название канала:</b> {channel_info.channel_name}'
+        await db.inactive_flagman (row_id=data ['row_id'])
 
-    await cb.message.edit_text(text, reply_markup=kb.get_edit_channel_kb(channel_info))
+        await bot.delete_message (chat_id=msg.chat.id, message_id=data ['sent_message_id'])
+        await view_channel (row_id=new_row_id, chat_id=msg.chat.id, message_id=data ['main_message_id'])
 
 
-# показывает канал флагман
+# Обновляет канал
+@dp.message (StateFilter ('update_channel'))
+async def add_channel(msg: Message, state: FSMContext) -> None:
+    await msg.delete ()
+    check_chat_id = msg.forward_from_chat.id if msg.forward_from_chat else msg.text
+
+    channel_info = await get_channel_info(check_chat_id=check_chat_id)
+    if not channel_info:
+        sent = await msg.answer (f'Бот не является администратором в канале\n\n'
+                                 f'Дайте боту статус администратора и попробуйте ещё раз')
+        await sleep (3)
+        await sent.delete ()
+
+    else:
+        data = await state.get_data ()
+        await state.clear ()
+        old_channel_info = await db.get_flagman(data['row_id'])
+        new_row_id = await db.add_flagman (
+            start_date=old_channel_info.start_date,
+            status='active',
+            pack_id=old_channel_info.pack_id,
+            pack_name=old_channel_info.pack_name,
+            channel_name=channel_info.title,
+            channel_id=channel_info.id,
+            channel_button=old_channel_info.channel_button
+        )
+
+        await db.inactive_flagman(row_id=data['row_id'])
+
+        await bot.delete_message (chat_id=msg.chat.id, message_id=data ['sent_message_id'])
+        await view_channel (row_id=new_row_id, chat_id=msg.chat.id, message_id=data['main_message_id'])
+
+
+# удаляет канал флагман
 @dp.callback_query (lambda cb: cb.data.startswith ('edit_flagman_del_channel'))
 async def edit_flagman_pack(cb: CallbackQuery, state: FSMContext) -> None:
     _, pack_id_str, row_id_str = cb.data.split (':')
@@ -213,3 +279,43 @@ async def edit_flagman_pack(cb: CallbackQuery, state: FSMContext) -> None:
         chat_id=cb.message.chat.id,
         message_id=cb.message.message_id
     )
+
+
+# ===========================================================================
+# DELTE
+
+# принимает новую дату
+# @dp.message(StateFilter('update_date'))
+# async def update_date(msg: Message, state: FSMContext) -> None:
+#     await msg.delete()
+#     if len(msg.text.split('.')) != 3 and not msg.text.replace('.', '').isdigit():
+#         sent = await msg.answer('Некорректный формат даты')
+#         await sleep(3)
+#         await sent.delete()
+#
+#     else:
+#         data = await state.get_data()
+#
+#         all_flagman = await db.get_all_flagman (pack_id=data['pack_id'])
+#         await db.inactive_all_flagman(pack_id=data['pack_id'])
+#         for flagman in all_flagman:
+#             await db.add_flagman(
+#                 start_date=msg.text,
+#                 status='active',
+#                 pack_id=flagman.pack_id,
+#                 pack_name=flagman.pack_name,
+#                 channel_name=flagman.channel_name,
+#                 channel_id=flagman.channel_id
+#             )
+#
+#         if data['pack_id']:
+#             text = f'В пакете {all_flagman[0].pack_name} начала всех потоков изменена на {msg.text}'
+#         else:
+#             text = f'Дата начала всех потоков изменена на {msg.text}'
+#
+#         await state.clear()
+#         await bot.edit_message_text (
+#             chat_id=msg.chat.id,
+#             message_id=data ['message_id'],
+#             text=text
+#         )

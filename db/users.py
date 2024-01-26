@@ -19,11 +19,11 @@ UsersTable = sa.Table(
     'users',
     METADATA,
     sa.Column('id', sa.Integer, primary_key=True, autoincrement=True),
-    sa.Column('tg_id', sa.Integer),
+    sa.Column('tg_id', sa.BigInteger),
     sa.Column('full_name', sa.String(128)),
     sa.Column('username', sa.String(32)),
     sa.Column('status', sa.String(50), default='free'),
-    sa.Column('gc_id', sa.Integer),
+    sa.Column('gc_id', sa.BigInteger),
     sa.Column('email', sa.String(255)),
     sa.Column('list', sa.String(50)),
 
