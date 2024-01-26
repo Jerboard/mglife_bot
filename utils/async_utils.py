@@ -30,6 +30,7 @@ async def get_silvers_chat(user_id: int, choice: list, is_silver: bool):
         await db.add_link(
             user_id=user_id,
             chat_id=chat.channel_id,
+            pack_id=chat.pack_id,
             chat_name=chat.channel_name,
             link=new_link.invite_link
         )
@@ -50,6 +51,39 @@ async def get_silvers_chat(user_id: int, choice: list, is_silver: bool):
     )
 
 
+# проверяет актуальность чатов
+async def get_current_chat_links(user_id: int) -> list[db.LinkRow]:
+    buttons = await db.get_user_links (user_id=user_id)
+    current_links = []
+    for button in buttons:
+        print(button)
+        # проверяет совпадает ли сохранённая ссылка с актуальной ссылкой
+        if button.chat_id == button.channel_id or button.pack_id == 6:
+            current_links.append(button)
+        else:
+            new_link = await bot.create_chat_invite_link(
+                chat_id=button.channel_id,
+                name=f'invite_link_for_{user_id}',
+                member_limit=1
+            )
+
+            await db.update_link(
+                row_id=button.id,
+                chat_id=button.channel_id,
+                chat_name=button.channel_name,
+                link=new_link.invite_link)
+
+            new_button = db.LinkRow(
+                button.id, buttons.channel_id, new_link.invite_link, buttons.channel_id, button.channel_name)
+
+            print(new_button)
+
+            current_links.append(new_button)
+
+    return current_links
+
+
+
 # присылает доступ
 async def send_access(user: db.UserRow):
     if user.list == 'gold':
@@ -66,7 +100,8 @@ async def send_access(user: db.UserRow):
             reply_markup=keyboard)
 
     if user.list != 'gold':
-        buttons = await db.get_user_links (user_id=user.tg_id)
+        buttons = await get_current_chat_links (user_id=user.tg_id)
+
         if buttons:
             text = 'Ваш доступ к каналам флагманов.'
             await bot.send_message (
@@ -74,7 +109,7 @@ async def send_access(user: db.UserRow):
                 text=text,
                 reply_markup=kb.get_silver_chanel_start (buttons))
         else:
-            if user.list == 'gold':
+            if user.list == 'silver':
                 text = (
                     'Дополнительно по тарифу "Серебряная карта" вы можете выбрать ТОЛЬКО два флагмана.\n\n'
                     '❗️После  выбора появится дополнительная кнопка "Подтвердить выбор"'

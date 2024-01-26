@@ -55,10 +55,6 @@ async def command_start_handler(message: Message, state: FSMContext) -> None:
 @dp.message(StateFilter(default_state))
 async def check_email(message: Message, state: FSMContext) -> None:
     await state.clear ()
-    # logging.warning(f'chat type: {message.chat.type}')
-    # if message.from_user.full_name != message.chat.full_name:
-    #     await db.add_chat(message.chat.id)
-    # else:
     if message.entities and message.entities[0].type == 'email':
         check_user = await db.get_email_info(message.text)
         keyboard = None
@@ -68,11 +64,10 @@ async def check_email(message: Message, state: FSMContext) -> None:
                 text='Почта не найдена.\nВозможно вы допустили ошибку или указали другую почту при оплате')
         else:
             if check_user.status == 'free':
-                text = 'Для получения доступа нажмите на кнопку 👇🏻'
                 text = 'Получить доступ к папке с курсами по карте'
                 keyboard = kb.get_gold_url_kb ()
 
-                await db.del_user(check_user.id)
+                await db.del_user(check_user.tg_id)
                 await db.add_user(tg_id=message.from_user.id,
                                   full_name=message.from_user.full_name,
                                   username=message.from_user.username,

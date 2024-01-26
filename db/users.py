@@ -55,18 +55,9 @@ async def add_user(
 
 
 # добавляет пользователя
-async def del_user(id: int) -> None:
+async def del_user(user_id: int) -> None:
     async with begin_connection () as conn:
-        await conn.execute (UsersTable.delete ().where (UsersTable.c.id == id))
-
-
-# Проверяет есть ли почта, если нет добавляет её
-async def update_user(gc_id: int, email: str) -> None:
-    async with begin_connection () as conn:
-        result = await conn.execute(UsersTable.select().where(UsersTable.c.email == email))
-
-        if not result.first():
-            await conn.execute (UsersTable.insert ().values (email=email, gc_id=gc_id))
+        await conn.execute (UsersTable.delete ().where (UsersTable.c.id == user_id))
 
 
 # проверяет почту
@@ -81,13 +72,6 @@ async def get_user_info(user_id: int) -> UserRow:
     async with begin_connection () as conn:
         result = await conn.execute(UsersTable.select().where(UsersTable.c.tg_id == user_id))
     return result.first()
-
-
-# возвращает очередь
-async def get_queue() -> tuple[UserRow]:
-    async with begin_connection () as conn:
-        result = await conn.execute(UsersTable.select().where(UsersTable.c.status == 'queue'))
-    return result.all()
 
 
 # обновляет статус

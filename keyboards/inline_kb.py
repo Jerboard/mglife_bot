@@ -63,11 +63,11 @@ def get_silver_chanel_add(buttons_data: list) -> InlineKeyboardMarkup:
 
 
 # даёт чаты
-def get_silver_chanel_start(buttons_data: tuple[db.LinkRow]) -> InlineKeyboardMarkup:
+def get_silver_chanel_start(buttons_data: list[db.LinkRow]) -> InlineKeyboardMarkup:
     kb = InlineKeyboardBuilder()
 
     for bt in buttons_data:
-        kb.button(text=bt.chat_name, url=bt.link)
+        kb.button(text=bt.channel_name, url=bt.link)
     kb.adjust(1)
     return kb.as_markup()
 
