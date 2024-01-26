@@ -1,6 +1,6 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-# from utils.maps import silver_chats
+from utils.enum import LinkRow
 
 import db
 
@@ -63,7 +63,7 @@ def get_silver_chanel_add(buttons_data: list) -> InlineKeyboardMarkup:
 
 
 # даёт чаты
-def get_silver_chanel_start(buttons_data: list[db.LinkRow]) -> InlineKeyboardMarkup:
+def get_silver_chanel_start(buttons_data: list[LinkRow]) -> InlineKeyboardMarkup:
     kb = InlineKeyboardBuilder()
 
     for bt in buttons_data:

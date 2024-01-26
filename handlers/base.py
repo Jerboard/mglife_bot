@@ -63,6 +63,8 @@ async def check_email(message: Message, state: FSMContext) -> None:
             await message.answer(
                 text='Почта не найдена.\nВозможно вы допустили ошибку или указали другую почту при оплате')
         else:
+            print(check_user)
+
             if check_user.status == 'free':
                 text = 'Получить доступ к папке с курсами по карте'
                 keyboard = kb.get_gold_url_kb ()
@@ -89,7 +91,8 @@ async def check_email(message: Message, state: FSMContext) -> None:
                 await send_access (check_user)
                 return
             else:
-                text = 'Адрес почты уже использован'
+                await message.answer('Адрес почты уже использован')
+                return
 
             if check_user.list == 'gold':
                 await message.answer (

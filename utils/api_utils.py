@@ -1,23 +1,21 @@
-# import requests
-# import asyncio
-#
-# from db.users import update_user
-# from init import account, group_id, secret_key
-#
-#
-# async def update_db():
-#     request_url = f'https://{account}.getcourse.ru/pl/api/account/groups/{group_id}/users?key={secret_key}'
-#     response = requests.get(request_url)
-#     data = response.json ()
-#     if response.status_code == 200 and data['success']:
-#         export_id = data['info']['export_id']
-#         await asyncio.sleep(30)
-#         export_url = f'https://{account}.getcourse.ru/pl/api/account/exports/{export_id}?key={secret_key}'
-#         response = requests.get (export_url)
-#         if response.status_code == 200:
-#             data = response.json ()
-#             for row in data['info']['items']:
-#                 await update_user(gc_id=int(row[0]), email=row[1])
+import requests
+import logging
+
+from init import account, group_id, secret_key
 
 
-# asyncio.run(update_db())
+# Отправить курс специалист
+def get_action_gc(email: str):
+    url = f'https://{account}.getcourse.ru/pl/api/account/deals?key={secret_key}&....'
+
+    payloads = {
+        "user": {"email": {email}, "phone": "foo"},
+        "system": {"refresh_if_exists": 0},
+        "deal": {"offer_code": "5446723", "quantity": 1}
+    }
+
+    response = requests.post(url=url, data=payloads)
+    logging.warning(f'Запрос специалист: {email}, code: {response.status_code}\n{response.text}')
+
+
+

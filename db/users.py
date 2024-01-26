@@ -57,7 +57,7 @@ async def add_user(
 # добавляет пользователя
 async def del_user(user_id: int) -> None:
     async with begin_connection () as conn:
-        await conn.execute (UsersTable.delete ().where (UsersTable.c.id == user_id))
+        await conn.execute (UsersTable.delete ().where (UsersTable.c.tg_id == user_id))
 
 
 # проверяет почту

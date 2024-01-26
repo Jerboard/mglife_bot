@@ -1,7 +1,9 @@
 import db
 
-from init import bot, MY_ID
+from init import bot
 from keyboards import inline_kb as kb
+from utils.enum import LinkRow
+from utils.api_utils import get_action_gc
 
 
 async def ban_user_chats(user_id: int):
@@ -23,6 +25,7 @@ async def get_silvers_chat(user_id: int, choice: list, is_silver: bool):
     for chat in chats:
         new_link = await bot.create_chat_invite_link(
             chat_id=chat.channel_id,
+            name=f'invite_link_for_{user_id}',
             member_limit=1
         )
 
@@ -34,6 +37,11 @@ async def get_silvers_chat(user_id: int, choice: list, is_silver: bool):
             chat_name=chat.channel_name,
             link=new_link.invite_link
         )
+
+        # если "Специалист" от правка данных
+        if chat.pack_id == 6:
+            user_info = await db.get_user_info(user_id)
+            get_action_gc(user_info.email)
 
     if is_silver:
         await bot.send_message (
@@ -52,14 +60,14 @@ async def get_silvers_chat(user_id: int, choice: list, is_silver: bool):
 
 
 # проверяет актуальность чатов
-async def get_current_chat_links(user_id: int) -> list[db.LinkRow]:
+async def get_current_chat_links(user_id: int) -> list[LinkRow]:
     buttons = await db.get_user_links (user_id=user_id)
     current_links = []
     for button in buttons:
-        print(button)
         # проверяет совпадает ли сохранённая ссылка с актуальной ссылкой
         if button.chat_id == button.channel_id or button.pack_id == 6:
-            current_links.append(button)
+            link = button.link
+
         else:
             new_link = await bot.create_chat_invite_link(
                 chat_id=button.channel_id,
@@ -73,15 +81,18 @@ async def get_current_chat_links(user_id: int) -> list[db.LinkRow]:
                 chat_name=button.channel_name,
                 link=new_link.invite_link)
 
-            new_button = db.LinkRow(
-                button.id, buttons.channel_id, new_link.invite_link, buttons.channel_id, button.channel_name)
+            link = new_link.invite_link
 
-            print(new_button)
-
-            current_links.append(new_button)
+        current_button = LinkRow (
+            id=button.id,
+            chat_id=button.channel_id,
+            link=link,
+            channel_id=button.channel_id,
+            channel_name=button.channel_name
+        )
+        current_links.append(current_button)
 
     return current_links
-
 
 
 # присылает доступ
