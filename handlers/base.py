@@ -164,12 +164,11 @@ async def admin_action(cb: CallbackQuery, state: FSMContext):
 async def admin_action(cb: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     await state.clear ()
-    is_silver = True if data['list_name'] == 'silver' else False
     await cb.message.delete()
     await get_silvers_chat(
         user_id=cb.from_user.id,
         choice=data['choice_chats'],
-        is_silver=is_silver)
+        card_list=data['list_name'])
 
 
 # отмена действия

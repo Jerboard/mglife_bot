@@ -17,7 +17,7 @@ async def ban_user_chats(user_id: int):
             pass
 
 
-async def get_silvers_chat(user_id: int, choice: list, is_silver: bool):
+async def get_silvers_chat(user_id: int, choice: list, card_list: bool):
     chats_1 = await db.get_all_flagman(int(choice [0]))
     chats_2 = await db.get_all_flagman(int(choice [1]))
 
@@ -40,18 +40,27 @@ async def get_silvers_chat(user_id: int, choice: list, is_silver: bool):
             link=new_link.invite_link
         )
 
-        # если "Специалист" от правка данных
+        # если "Специалист" отправка данных
         if chat.pack_id == 6:
-            user_info = await db.get_user_info(user_id)
-            get_action_gc(user_info.email)
+            pass
+            # user_info = await db.get_user_info(user_id)
+            # get_action_gc(user_info.email)
 
-    if is_silver:
+    if card_list == 'silver':
         await bot.send_message (
             chat_id=user_id,
             text='Получить доступ к папке с курсами по карте',
             disable_web_page_preview=True,
             protect_content=True,
             reply_markup=kb.get_silver_url_kb())
+
+    elif card_list == 'silver':
+        await bot.send_message (
+            chat_id=user_id,
+            text='Получить доступ к папке с курсами по карте',
+            disable_web_page_preview=True,
+            protect_content=True,
+            reply_markup=kb.get_gold_url_kb ())
 
     text = 'Ваш доступ к каналам флагманов.'
     await bot.send_message(
