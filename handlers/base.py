@@ -36,7 +36,6 @@ async def command_start_handler(message: Message, state: FSMContext) -> None:
             if DEBUG:
                 photo_id = 'AgACAgIAAxkBAAImRWWxAAGw-tPwOJBY8cD3pO5hlHCS_gAC49kxGyToiUnuq3B7p7CKKAEAAwIAA3kAAzQE'
             else:
-                # photo_id = 'AgACAgIAAxkBAANyZXCNd5RxATSiJISD1oMMOizDfzAAAgXVMRueHYFLX3QWedb7aTUBAAMCAAN5AAMzBA'
                 photo_id = 'AgACAgIAAxkBAAIXv2WD3ZNgA3zgkI2fxOjazDyj33gjAAK00DEb7iUhSJa1vRduFvyOAQADAgADeQADMwQ'
 
             text = ('Урааа 🥳 Поздравляю с покупкой Золотой  или Серебрянной карты.\n\n'
@@ -63,8 +62,6 @@ async def check_email(message: Message, state: FSMContext) -> None:
             await message.answer(
                 text='Почта не найдена.\nВозможно вы допустили ошибку или указали другую почту при оплате')
         else:
-            print(check_user)
-
             if check_user.status == 'free':
                 text = 'Получить доступ к папке с курсами по карте'
                 keyboard = kb.get_gold_url_kb ()
