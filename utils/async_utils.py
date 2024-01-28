@@ -54,7 +54,7 @@ async def get_silvers_chat(user_id: int, choice: list, card_list: bool):
             protect_content=True,
             reply_markup=kb.get_silver_url_kb())
 
-    elif card_list == 'silver':
+    elif card_list == 'gold':
         await bot.send_message (
             chat_id=user_id,
             text='Получить доступ к папке с курсами по карте',
