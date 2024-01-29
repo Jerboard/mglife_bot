@@ -82,3 +82,9 @@ async def get_user_links(user_id: int) -> tuple[LinkRow]:
     async with begin_connection () as conn:
         result = await conn.execute(query)
     return result.all()
+
+
+# далет ссылки пользователя
+async def del_users_link(user_id: int) -> None:
+    async with begin_connection() as conn:
+        await conn.execute(LinkTable.delete().where(LinkTable.c.user_id == user_id))
