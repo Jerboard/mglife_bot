@@ -6,13 +6,24 @@ from db.base import METADATA, begin_connection
 from .flagmans import FlagmanTable
 
 
+# class LinkRow(t.Protocol):
+#     id: int
+#     pack_id: int
+#     chat_id: int
+#     link: str
+#     chat_name: str
+#     channel_id: int
+#     channel_name: str
+#     status: str
+
+
 class LinkRow(t.Protocol):
     id: int
-    pack_id: int
+    user_id: int
     chat_id: int
+    pack_id: int
+    chat_name: str
     link: str
-    channel_id: int
-    channel_name: str
 
 
 LinkTable = sa.Table(
@@ -69,22 +80,38 @@ async def update_link(
 
 
 async def get_user_links(user_id: int) -> tuple[LinkRow]:
-    query = (sa.select(
-        LinkTable.c.id,
-        LinkTable.c.chat_id,
-        LinkTable.c.link,
-        LinkTable.c.pack_id,
-        FlagmanTable.c.channel_id,
-        FlagmanTable.c.channel_name
-    ).select_from(LinkTable.join(FlagmanTable, LinkTable.c.pack_id == FlagmanTable.c.pack_id)).
-             where(LinkTable.c.user_id == user_id, FlagmanTable.c.status == 'active'))
-
-    async with begin_connection () as conn:
-        result = await conn.execute(query)
+    async with begin_connection() as conn:
+        result = await conn.execute(LinkTable.select().where(LinkTable.c.user_id == user_id))
     return result.all()
 
 
+# async def get_user_links(user_id: int) -> tuple[LinkRow]:
+#     query = (sa.select(
+#         LinkTable.c.id,
+#         LinkTable.c.chat_id,
+#         LinkTable.c.link,
+#         LinkTable.c.pack_id,
+#         LinkTable.c.chat_name,
+#         FlagmanTable.c.channel_id,
+#         FlagmanTable.c.channel_name,
+#         FlagmanTable.c.status
+#     ).select_from(LinkTable.join(FlagmanTable, LinkTable.c.pack_id == FlagmanTable.c.pack_id)).
+#              where(
+#         LinkTable.c.user_id == user_id,
+#         FlagmanTable.c.status == 'active',
+#         LinkTable.c.chat_id == FlagmanTable.c.channel_id
+#     ).order_by(LinkTable.c.pack_id))
+#
+#     async with begin_connection () as conn:
+#         result = await conn.execute(query)
+#     return result.all()
+
+
 # далет ссылки пользователя
-async def del_users_link(user_id: int) -> None:
+async def del_users_link(user_id: int, pack_id: int = None) -> None:
+    query = LinkTable.delete().where(LinkTable.c.user_id == user_id)
+    if pack_id:
+        query = query.where(LinkTable.c.pack_id == pack_id)
+
     async with begin_connection() as conn:
-        await conn.execute(LinkTable.delete().where(LinkTable.c.user_id == user_id))
+        await conn.execute(query)

@@ -41,7 +41,7 @@ async def get_silvers_chat(user_id: int, choice: list, card_list: str):
             user_id=user_id,
             chat_id=chat.channel_id,
             pack_id=chat.pack_id,
-            chat_name=chat.channel_name,
+            chat_name=chat.channel_button,
             link=new_link.invite_link
         )
 
@@ -75,43 +75,85 @@ async def get_silvers_chat(user_id: int, choice: list, card_list: str):
     )
 
 
+# обновляет пакет для пользователя
+async def update_flagman_pack(user_id: int, pack_id: int):
+    await db.del_users_link(user_id=user_id, pack_id=pack_id)
+    flagman_pack = await db.get_all_flagman(pack_id=pack_id)
+
+    for channel in flagman_pack:
+        new_link = await bot.create_chat_invite_link (
+            chat_id=channel.channel_id,
+            name=f'invite_link_for_{user_id}',
+            member_limit=1
+        )
+        await db.add_link(
+            user_id=user_id,
+            chat_id=channel.channel_id,
+            pack_id=pack_id,
+            chat_name=channel.channel_name,
+            link=new_link.invite_link
+        )
+
+
 # проверяет актуальность чатов
-async def get_current_chat_links(user_id: int) -> list[LinkRow]:
+async def get_current_chat_links(user_id: int) -> tuple[LinkRow]:
     buttons = await db.get_user_links (user_id=user_id)
-    current_links = []
-    for button in buttons:
-        try:
-        # проверяет совпадает ли сохранённая ссылка с актуальной ссылкой
-            if button.chat_id == button.channel_id or button.pack_id == 6:
-                link = button.link
-
+    print(len(buttons))
+    done = False
+    i = 0
+    while not done and i <= len(buttons):
+        i += 1
+        for button in buttons:
+            check_active_channel = await db.get_flagman_channel(button.chat_id)
+            if check_active_channel:
+                print('check_active_channel')
+                pass
             else:
-                new_link = await bot.create_chat_invite_link(
-                    chat_id=button.channel_id,
-                    name=f'invite_link_for_{user_id}',
-                    member_limit=1
-                )
+                print('update')
+                await update_flagman_pack(user_id=user_id, pack_id=button.pack_id)
+                break
 
-                await db.update_link(
-                    row_id=button.id,
-                    chat_id=button.channel_id,
-                    chat_name=button.channel_name,
-                    link=new_link.invite_link)
+            done = True
 
-                link = new_link.invite_link
+    return buttons
 
-            current_button = LinkRow (
-                id=button.id,
-                chat_id=button.channel_id,
-                link=link,
-                channel_id=button.channel_id,
-                channel_name=button.channel_name
-            )
-            current_links.append(current_button)
-        except Exception as ex:
-            logging.warning(f'Не обновил кнопку\v{ex}')
 
-    return current_links
+
+        # try:
+        # проверяет совпадает ли сохранённая ссылка с актуальной ссылкой
+        #     print(button.chat_id == button.channel_id, button.pack_id == 6)
+        #     print(button)
+        #     if button.chat_id == button.channel_id or button.pack_id == 6:
+        #         link = button.link
+        #
+        #     else:
+        #         new_link = await bot.create_chat_invite_link(
+        #             chat_id=button.channel_id,
+        #             name=f'invite_link_for_{user_id}',
+        #             member_limit=1
+        #         )
+        #
+        #         await db.update_link(
+        #             row_id=button.id,
+        #             chat_id=button.channel_id,
+        #             chat_name=button.channel_name,
+        #             link=new_link.invite_link)
+        #
+        #         link = new_link.invite_link
+        #
+        #     current_button = LinkRow (
+        #         id=button.id,
+        #         chat_id=button.channel_id,
+        #         link=link,
+        #         channel_id=button.channel_id,
+        #         channel_name=button.channel_name
+        #     )
+        #     current_links.append(current_button)
+        # except Exception as ex:
+        #     logging.warning(f'Не обновил кнопку\v{ex}')
+
+    # return current_links
+
 
 
 # присылает доступ
@@ -133,6 +175,7 @@ async def send_access(user: db.UserRow):
     buttons = await get_current_chat_links (user_id=user.tg_id)
 
     if buttons:
+        print(len(buttons))
         text = 'Ваш доступ к каналам флагманов.'
         await bot.send_message (
             chat_id=user.tg_id,

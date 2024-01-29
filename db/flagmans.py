@@ -120,6 +120,16 @@ async def get_flagman(row_id: int) -> t.Union[FlagmanRow, None]:
     return result.first ()
 
 
+# флагман по чатид
+async def get_flagman_channel(channel_id: int) -> t.Union[FlagmanRow, None]:
+    async with begin_connection () as conn:
+        result = await conn.execute (
+            FlagmanTable.select ().where (
+                FlagmanTable.c.channel_id == channel_id,
+                FlagmanTable.c.status == 'active'))
+    return result.first ()
+
+
 # флагман по ид
 async def get_pack_info(pack_id: int) -> t.Union[FlagmanRow, None]:
     async with begin_connection () as conn:
