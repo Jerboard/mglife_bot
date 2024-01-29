@@ -31,7 +31,7 @@ async def get_silvers_chat(user_id: int, choice: list, card_list: bool):
             member_limit=1
         )
 
-        buttons_data.append({'title': f'{chat.start_date} {chat.channel_name}', 'link': new_link.invite_link})
+        buttons_data.append({'title': f'{chat.channel_button}', 'link': new_link.invite_link})
         await db.add_link(
             user_id=user_id,
             chat_id=chat.channel_id,
