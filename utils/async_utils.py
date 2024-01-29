@@ -17,20 +17,25 @@ async def ban_user_chats(user_id: int):
             pass
 
 
-async def get_silvers_chat(user_id: int, choice: list, card_list: bool):
-    chats_1 = await db.get_all_flagman(int(choice [0]))
-    chats_2 = await db.get_all_flagman(int(choice [1]))
+async def get_silvers_chat(user_id: int, choice: list, card_list: str):
+    if card_list != 'gold':
+        chats_1 = await db.get_all_flagman(int(choice [0]))
+        chats_2 = await db.get_all_flagman(int(choice [1]))
 
-    chats = chats_1 + chats_2
+        chats = chats_1 + chats_2
+
+    else:
+        chats = choice
+
     buttons_data = []
-
     for chat in chats:
         new_link = await bot.create_chat_invite_link(
             chat_id=chat.channel_id,
             name=f'invite_link_for_{user_id}',
             member_limit=1
         )
-
+        buttons_data.append({'title': f'{chat.channel_button}', 'link': new_link.invite_link})
+        # invite_link = 'https://www.google.com/'
         buttons_data.append({'title': f'{chat.channel_button}', 'link': new_link.invite_link})
         await db.add_link(
             user_id=user_id,

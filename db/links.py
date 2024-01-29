@@ -81,7 +81,4 @@ async def get_user_links(user_id: int) -> tuple[LinkRow]:
 
     async with begin_connection () as conn:
         result = await conn.execute(query)
-        # result = await conn.execute (
-        #     LinkTable.select().where(LinkTable.c.user_id == user_id)
-        # )
     return result.all()

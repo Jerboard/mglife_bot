@@ -56,7 +56,6 @@ async def check_email(message: Message, state: FSMContext) -> None:
     await state.clear ()
     if message.entities and message.entities[0].type == 'email':
         check_user = await db.get_email_info(message.text)
-
         if not check_user:
             await message.answer(
                 text='Почта не найдена.\nВозможно вы допустили ошибку или указали другую почту при оплате')
@@ -90,46 +89,52 @@ async def check_email(message: Message, state: FSMContext) -> None:
                 await message.answer('Адрес почты уже использован')
                 return
 
-            # if check_user.list == 'gold':
-            #     await message.answer (
-            #         text=text,
-            #         disable_web_page_preview=True,
-            #         protect_content=True,
-            #         reply_markup=keyboard)
+            if check_user.list == 'gold':
+                await message.answer (
+                    text=text,
+                    disable_web_page_preview=True,
+                    protect_content=True,
+                    reply_markup=keyboard)
 
-            # else:
-            if check_user.list == 'silver':
-                text = (
-                    'Дополнительно по тарифу "Серебряная карта" вы можете выбрать ТОЛЬКО два флагмана.\n\n'
-                    '❗️После  выбора появится дополнительная кнопка "Подтвердить выбор"'
-                    'После ее нажатия сменить курс будет <b>НЕВОЗМОЖНО</b>.\n\n'
-                    '❗Курс "Специалист" допускается к прохождению, только если уже пройден курс "Пользователь". '
-                    '❗После выбора курса "Специалист" сменить поток будет невозможно.')
-
-            elif check_user.list == 'gold':
-                text = (
-                    'Дополнительно по тарифу "Золотая карта" вы можете выбрать ТОЛЬКО два флагмана.\n\n'
-                    '❗️После  выбора появится дополнительная кнопка "Подтвердить выбор"'
-                    'После ее нажатия сменить курс будет <b>НЕВОЗМОЖНО</b>.\n\n'
-                    '❗Курс "Специалист" допускается к прохождению, только если уже пройден курс "Пользователь". '
-                    '❗После выбора курса "Специалист" сменить поток будет невозможно.')
+                all_flagman = await db.get_all_flagman()
+                await get_silvers_chat (
+                    user_id=message.from_user.id,
+                    choice=all_flagman,
+                    card_list='gold')
 
             else:
-                text = ('По условиям рассрочки "Золотой карты" вы сейчас можете выбрать ТОЛЬКО два флагмана.\n\n'
+                if check_user.list == 'silver':
+                    text = (
+                        'Дополнительно по тарифу "Серебряная карта" вы можете выбрать ТОЛЬКО два флагмана.\n\n'
                         '❗️После  выбора появится дополнительная кнопка "Подтвердить выбор"'
                         'После ее нажатия сменить курс будет <b>НЕВОЗМОЖНО</b>.\n\n'
                         '❗Курс "Специалист" допускается к прохождению, только если уже пройден курс "Пользователь". '
                         '❗После выбора курса "Специалист" сменить поток будет невозможно.')
 
-            all_flagman = await db.get_all_flagman ()
-            await message.answer(
-                text=text,
-                reply_markup=kb.get_silver_chanel_choice(
-                    choice=[],
-                    list_name=check_user.list,
-                    all_flagman=all_flagman
+                elif check_user.list == 'gold':
+                    text = (
+                        'Дополнительно по тарифу "Золотая карта" вы можете выбрать ТОЛЬКО два флагмана.\n\n'
+                        '❗️После  выбора появится дополнительная кнопка "Подтвердить выбор"'
+                        'После ее нажатия сменить курс будет <b>НЕВОЗМОЖНО</b>.\n\n'
+                        '❗Курс "Специалист" допускается к прохождению, только если уже пройден курс "Пользователь". '
+                        '❗После выбора курса "Специалист" сменить поток будет невозможно.')
+
+                else:
+                    text = ('По условиям рассрочки "Золотой карты" вы сейчас можете выбрать ТОЛЬКО два флагмана.\n\n'
+                            '❗️После  выбора появится дополнительная кнопка "Подтвердить выбор"'
+                            'После ее нажатия сменить курс будет <b>НЕВОЗМОЖНО</b>.\n\n'
+                            '❗Курс "Специалист" допускается к прохождению, только если уже пройден курс "Пользователь". '
+                            '❗После выбора курса "Специалист" сменить поток будет невозможно.')
+
+                all_flagman = await db.get_all_flagman ()
+                await message.answer(
+                    text=text,
+                    reply_markup=kb.get_silver_chanel_choice(
+                        choice=[],
+                        list_name=check_user.list,
+                        all_flagman=all_flagman
+                    )
                 )
-            )
 
     else:
         await message.answer('Некорректный адрес электронной почты')
