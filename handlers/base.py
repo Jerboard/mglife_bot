@@ -90,11 +90,11 @@ async def check_email(message: Message, state: FSMContext) -> None:
                 return
 
             if check_user.list == 'gold':
-                await message.answer (
-                    text=text,
-                    disable_web_page_preview=True,
-                    protect_content=True,
-                    reply_markup=keyboard)
+                # await message.answer (
+                #     text=text,
+                #     disable_web_page_preview=True,
+                #     protect_content=True,
+                #     reply_markup=keyboard)
 
                 all_flagman = await db.get_all_flagman()
                 await get_silvers_chat (
