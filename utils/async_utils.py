@@ -98,18 +98,15 @@ async def update_flagman_pack(user_id: int, pack_id: int):
 # проверяет актуальность чатов
 async def get_current_chat_links(user_id: int) -> tuple[LinkRow]:
     buttons = await db.get_user_links (user_id=user_id)
-    print(len(buttons))
     done = False
     i = 0
     while not done and i <= len(buttons):
         i += 1
         for button in buttons:
             check_active_channel = await db.get_flagman_channel(button.chat_id)
-            if check_active_channel:
-                print('check_active_channel')
+            if check_active_channel or button.pack_id == 6:
                 pass
             else:
-                print('update')
                 await update_flagman_pack(user_id=user_id, pack_id=button.pack_id)
                 break
 
