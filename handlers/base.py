@@ -64,7 +64,7 @@ async def check_email(message: Message, state: FSMContext) -> None:
                 text = 'Получить доступ к папке с курсами по карте'
                 keyboard = kb.get_gold_url_kb ()
 
-                await db.del_user(check_user.tg_id)
+                await db.del_user(check_user.id)
                 await db.add_user(tg_id=message.from_user.id,
                                   full_name=message.from_user.full_name,
                                   username=message.from_user.username,
