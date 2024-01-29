@@ -101,6 +101,7 @@ async def check_email(message: Message, state: FSMContext) -> None:
                     user_id=message.from_user.id,
                     choice=all_flagman,
                     card_list='gold')
+                return
 
             else:
                 if check_user.list == 'silver':
