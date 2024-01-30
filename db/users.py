@@ -81,6 +81,6 @@ async def ban_email(email: str) -> None:
 
 
 # добавляет почту
-async def add_email(gc_id: int, email: str) -> None:
+async def add_email(gc_id: int, email: str, tariff: str) -> None:
     async with begin_connection () as conn:
-        await conn.execute (UsersTable.insert ().values (email=email, gc_id=gc_id))
+        await conn.execute (UsersTable.insert ().values (email=email, gc_id=gc_id, list=tariff))

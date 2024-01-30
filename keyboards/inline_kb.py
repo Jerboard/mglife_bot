@@ -21,9 +21,9 @@ def get_silver_url_kb():
 
 def get_admin_action_kb():
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text='Сделать возврат', callback_data="admin_act:return")],
-        [InlineKeyboardButton(text='Сменить пользователя', callback_data="admin_act:refresh")],
-        [InlineKeyboardButton(text='Проверить почту', callback_data="admin_act:check")],
+        [InlineKeyboardButton(text='Сделать возврат', callback_data="admin_action:return")],
+        [InlineKeyboardButton(text='Сменить пользователя', callback_data="admin_action:refresh")],
+        [InlineKeyboardButton(text='Проверить почту', callback_data="admin_action:check")],
         [InlineKeyboardButton(text='Редактировать потоки', callback_data="edit_flagman_start")]
     ])
 

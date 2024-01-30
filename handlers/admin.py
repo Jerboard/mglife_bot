@@ -64,7 +64,7 @@ async def check_email(message: Message, state: FSMContext) -> None:
 
     else:
         await db.del_user(email_info.id)
-        await db.add_email(gc_id=email_info.gc_id, email=email_info.email)
+        await db.add_email(gc_id=email_info.gc_id, email=email_info.email, tariff=email_info.list)
 
     await ban_user_chats(email_info.tg_id)
     await db.del_users_link(email_info.tg_id)
