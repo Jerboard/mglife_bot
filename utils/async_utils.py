@@ -35,8 +35,6 @@ async def get_silvers_chat(user_id: int, choice: list, card_list: str):
             member_limit=1
         )
         buttons_data.append({'title': f'{chat.channel_button}', 'link': new_link.invite_link})
-        # invite_link = 'https://www.google.com/'
-        # buttons_data.append({'title': f'{chat.channel_button}', 'link': invite_link})
         await db.add_link(
             user_id=user_id,
             chat_id=chat.channel_id,
@@ -47,9 +45,7 @@ async def get_silvers_chat(user_id: int, choice: list, card_list: str):
 
         # если "Специалист" отправка данных
         if chat.pack_id == 6:
-            pass
-            # user_info = await db.get_user_info(user_id)
-            # get_action_gc(user_info.email)
+            await get_action_gc(user_id)
 
     if card_list == 'silver':
         await bot.send_message (

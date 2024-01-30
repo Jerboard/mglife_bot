@@ -30,7 +30,7 @@ account = getenv('ACCOUNT')
 secret_key = getenv('SECRET_KEY')
 group_id = getenv('GROUP_ID')
 
-# ADMINS = [524275902, 650850638, 1456925942]
+# ADMINS = [650850638, 524275902, 1456925942]
 ADMINS = [650850638, 1456925942]
 MY_ID = getenv('MY_ID')
 
