@@ -1,3 +1,5 @@
+import logging
+
 import httpx
 
 from datetime import datetime
@@ -31,11 +33,15 @@ async def get_action_gc(user_id: int):
 
     text = (f'Пользователь {user} выбрал курс "Специалист"\n\n'
             f'gc_id: <code>{user_info.tg_id}</code>\n'
-            f'emsil: <code>{user_info.email}</code>\n')
+            f'email: <code>{user_info.email}</code>\n')
 
-    await bot.send_message(
-        chat_id=ADMINS[0],
-        text=text
-    )
+    for admin in [653117820, 589889158]:
+        try:
+            await bot.send_message(
+                chat_id=admin,
+                text=text
+            )
+        except Exception as ex:
+            logging.warning(f'Уведомление по специалисту не отправлено: {admin}\n{ex}')
 
 
