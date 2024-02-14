@@ -44,7 +44,7 @@ async def get_silvers_chat(user_id: int, choice: list, card_list: str):
         )
 
         # если "Специалист" отправка данных
-        if chat.pack_id == 6:
+        if chat.pack_id == 6 and card_list != 'gold':
             await get_action_gc(user_id)
 
     if card_list == 'silver':

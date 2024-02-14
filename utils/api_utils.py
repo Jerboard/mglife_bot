@@ -43,5 +43,3 @@ async def get_action_gc(user_id: int):
             )
         except Exception as ex:
             logging.warning(f'Уведомление по специалисту не отправлено: {admin}\n{ex}')
-
-
