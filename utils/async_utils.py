@@ -44,7 +44,7 @@ async def get_silvers_chat(user_id: int, choice: list, card_list: str):
         )
 
         # если "Специалист" отправка данных
-        if chat.pack_id == 6 and card_list != 'gold':
+        if chat.pack_id == 6:
             await get_action_gc(user_id)
 
     if card_list == 'silver':
@@ -92,7 +92,7 @@ async def update_flagman_pack(user_id: int, pack_id: int):
 
 
 # проверяет актуальность чатов
-async def get_current_chat_links(user_id: int) -> tuple[LinkRow]:
+async def get_current_chat_links(user_id: int, users_list: str) -> tuple[LinkRow]:
     buttons = await db.get_user_links (user_id=user_id)
     done = False
     i = 0
@@ -100,7 +100,7 @@ async def get_current_chat_links(user_id: int) -> tuple[LinkRow]:
         i += 1
         for button in buttons:
             check_active_channel = await db.get_flagman_channel(button.chat_id)
-            if check_active_channel or button.pack_id == 6:
+            if check_active_channel or (button.pack_id == 6 and users_list != 'gold'):
                 pass
             else:
                 await update_flagman_pack(user_id=user_id, pack_id=button.pack_id)
@@ -126,7 +126,7 @@ async def send_access(user: db.UserRow):
             text='Получить доступ к папке с курсами по карте',
             reply_markup=keyboard)
 
-    buttons = await get_current_chat_links (user_id=user.tg_id)
+    buttons = await get_current_chat_links (user_id=user.tg_id, users_list=user.list)
 
     if buttons:
         text = 'Ваш доступ к каналам флагманов.'
