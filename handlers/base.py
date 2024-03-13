@@ -181,4 +181,5 @@ async def cancel(cb: CallbackQuery, state: FSMContext):
 # пишет айди для удаления
 @dp.channel_post()
 async def chat(message: Message):
-    await db.add_chat (message.chat.id)
+    print(f'{message.chat.id}: {message.chat.title}')
+    # await db.add_chat (message.chat.id)
